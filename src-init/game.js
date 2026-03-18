@@ -5,6 +5,9 @@
  * bird rendering, floor scrolling, score display, and start/game-over screens.
  */
 
+console.log('game.js module loaded, innerWidth:', window.innerWidth, 'innerHeight:', window.innerHeight, 'dpr:', window.devicePixelRatio);
+window.onerror = (msg, src, line) => console.error('Script error:', msg, 'at', src, ':', line);
+
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
@@ -97,6 +100,7 @@ function resizeCanvas() {
 // Set canvas dimensions immediately at module load time
 // ---------------------------------------------------------------------------
 resizeCanvas();
+console.log('resizeCanvas done, canvas.width:', canvas.width, 'canvas.height:', canvas.height);
 
 // ---------------------------------------------------------------------------
 // Drawing helpers
