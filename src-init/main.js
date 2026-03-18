@@ -85,7 +85,9 @@ function updateStore(newState) {
  * (DPR) scaling so the rendering stays crisp on high-density displays.
  */
 function resizeCanvas() {
-    const dpr = window.store.dpr;
+    // Always read fresh DPR value
+    const dpr = window.devicePixelRatio || 1;
+    window.store.dpr = dpr;
     const { innerWidth: width, innerHeight: height } = window;
     const ratio = 600 / 800;
 
@@ -293,7 +295,6 @@ function render() {
 // --- Event listeners ---
 
 window.addEventListener('resize', () => {
-    updateStore({ dpr: window.devicePixelRatio || 1 });
     resizeCanvas();
 });
 
