@@ -64,11 +64,15 @@ window.store = {
     horizontalMovement: 0,
 };
 
-// Load assets
-window.store.assets.birdImg.src = 'assets/bird.png';
-window.store.assets.floorImg.src = 'assets/fg.png';
-window.store.assets.pipeUpImg.src = 'assets/pipeUp.png';
-window.store.assets.pipeDownImg.src = 'assets/pipeDown.png';
+// Load assets - helper that handles already-cached images
+function loadImage(img, src) {
+    return new Promise(resolve => {
+        img.onload = resolve;
+        img.onerror = resolve; // Don't block on error
+        img.src = src;
+        if (img.complete) resolve();
+    });
+}
 
 function updateStore(newState) {
     window.store = { ...window.store, ...newState };
@@ -324,10 +328,10 @@ window.addEventListener('keyup', (e) => {
 // --- Initialization ---
 
 Promise.all([
-    new Promise(resolve => window.store.assets.birdImg.onload = resolve),
-    new Promise(resolve => window.store.assets.floorImg.onload = resolve),
-    new Promise(resolve => window.store.assets.pipeUpImg.onload = resolve),
-    new Promise(resolve => window.store.assets.pipeDownImg.onload = resolve)
+    loadImage(window.store.assets.birdImg, 'assets/bird.png'),
+    loadImage(window.store.assets.floorImg, 'assets/fg.png'),
+    loadImage(window.store.assets.pipeUpImg, 'assets/pipeUp.png'),
+    loadImage(window.store.assets.pipeDownImg, 'assets/pipeDown.png')
 ]).then(() => {
     resizeCanvas();
     render();
