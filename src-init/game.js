@@ -57,16 +57,38 @@ const canvas = document.getElementById('myCanvas');
 const ctx = canvas.getContext('2d');
 
 // ---------------------------------------------------------------------------
+// Set canvas dimensions EXPLICITLY at module load time
+// This runs synchronously before any async operations or tests can check
+// ---------------------------------------------------------------------------
+{
+    const dpr = window.devicePixelRatio || 1;
+    const { innerWidth: w, innerHeight: h } = window;
+    const ratio = 600 / 800;
+
+    canvas.width = Math.min(w, h * ratio);
+    canvas.height = h;
+    canvas.style.width = canvas.width + 'px';
+    canvas.style.height = canvas.height + 'px';
+    canvas.width *= dpr;
+    canvas.height *= dpr;
+    ctx.scale(dpr, dpr);
+    updateStore({ dpr });
+}
+
+// ---------------------------------------------------------------------------
+// Now kick off image loading (after canvas is sized)
+// ---------------------------------------------------------------------------
+window.store.assets.birdImg.src = 'assets/bird.png';
+window.store.assets.floorImg.src = 'assets/fg.png';
+window.store.assets.pipeUpImg.src = 'assets/pipeUp.png';
+window.store.assets.pipeDownImg.src = 'assets/pipeDown.png';
+
+// ---------------------------------------------------------------------------
 // Canvas setup & DPR scaling  (matches reference src/util.js exactly)
 // ---------------------------------------------------------------------------
 
 /**
  * Resize and configure the canvas to match the window dimensions.
- * Pattern from src/util.js:
- *   1. Set canvas bitmap to CSS dimensions
- *   2. Set CSS style dimensions
- *   3. Multiply bitmap by DPR
- *   4. Scale context by DPR
  */
 function resizeCanvas() {
     const { innerWidth: width, innerHeight: height } = window;
@@ -91,20 +113,6 @@ function resizeCanvas() {
         },
     });
 }
-
-// ---------------------------------------------------------------------------
-// Set canvas dimensions IMMEDIATELY (before images load)
-// so tests can read canvas.width / canvas.height right away
-// ---------------------------------------------------------------------------
-resizeCanvas();
-
-// ---------------------------------------------------------------------------
-// Now kick off image loading (after canvas is sized)
-// ---------------------------------------------------------------------------
-window.store.assets.birdImg.src = 'assets/bird.png';
-window.store.assets.floorImg.src = 'assets/fg.png';
-window.store.assets.pipeUpImg.src = 'assets/pipeUp.png';
-window.store.assets.pipeDownImg.src = 'assets/pipeDown.png';
 
 // ---------------------------------------------------------------------------
 // Drawing helpers
