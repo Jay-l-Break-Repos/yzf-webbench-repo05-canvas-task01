@@ -14,6 +14,12 @@
  * limitations under the License.
  **/
 
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 body {
     display: flex;
     justify-content: center;
@@ -28,4 +34,5 @@ body {
     background-image: url('assets/bg.png');
     background-size: cover;
     background-position: center;
+    display: block;
 }

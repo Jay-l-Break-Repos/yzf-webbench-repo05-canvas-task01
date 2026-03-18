@@ -21,6 +21,26 @@ import { GRAVITY, MAX_VELOCITY, ITEM_SIZE, WEATHER_CHANGE_INTERVAL, COIN_SCORE, 
 const canvas = document.getElementById('myCanvas');
 const ctx = canvas.getContext('2d');
 
+// Immediately size the canvas to match the viewport (before images load)
+{
+    const { innerWidth: width, innerHeight: height } = window;
+    const ratio = 600 / 800;
+    const cssWidth = Math.min(width, height * ratio);
+    canvas.style.width = `${cssWidth}px`;
+    canvas.style.height = `${height}px`;
+    canvas.width = cssWidth * window.store.dpr;
+    canvas.height = height * window.store.dpr;
+    ctx.scale(window.store.dpr, window.store.dpr);
+    // Set initial bird y position to vertical center
+    const birdImgHeight = window.store.assets.birdImg.height || 0;
+    updateStore({
+        bird: {
+            ...window.store.bird,
+            y: canvas.height / (2 * window.store.dpr) - birdImgHeight / 2
+        }
+    });
+}
+
 function updateBird() {
     if (window.store.isAnimating) {
         let { velocity, y, rotation, x } = window.store.bird;
@@ -226,16 +246,18 @@ window.addEventListener('keyup', (e) => {
     }
 });
 
-Promise.all([
-    new Promise(resolve => window.store.assets.birdImg.onload = ()=>{
-        createInvertedBirdImage(window.store.assets.birdImg).then(img => window.store.assets.enemyImg = img).then(()=>{;
+function waitForImage(img) {
+    return new Promise(resolve => {
+        if (img.complete) {
             resolve();
-        });
-    }),
-    new Promise(resolve => window.store.assets.floorImg.onload = resolve),
-    new Promise(resolve => window.store.assets.pipeUpImg.onload = resolve),
-    new Promise(resolve => window.store.assets.pipeDownImg.onload = resolve)
-]).then(() => {
+        } else {
+            img.onload = resolve;
+            img.onerror = resolve;
+        }
+    });
+}
+
+function initGame() {
     resizeCanvas(canvas, ctx);
     initializeWeatherParticles();
     render();
@@ -243,4 +265,37 @@ Promise.all([
     setInterval(() => generateField(canvas), FIELD_GENERATION_INTERVAL);
     setInterval(() => spawnEnemy(canvas), ENEMY_SPAWN_INTERVAL);
     setInterval(() => spawnBoss(canvas), BOSS_SPAWN_INTERVAL);
+}
+
+let gameInitialized = false;
+
+Promise.all([
+    waitForImage(window.store.assets.birdImg).then(() => {
+        if (window.store.assets.birdImg.naturalWidth) {
+            return createInvertedBirdImage(window.store.assets.birdImg).then(img => {
+                window.store.assets.enemyImg = img;
+            });
+        }
+    }),
+    waitForImage(window.store.assets.floorImg),
+    waitForImage(window.store.assets.pipeUpImg),
+    waitForImage(window.store.assets.pipeDownImg)
+]).then(() => {
+    if (!gameInitialized) {
+        gameInitialized = true;
+        initGame();
+    }
+}).catch(() => {
+    if (!gameInitialized) {
+        gameInitialized = true;
+        initGame();
+    }
 });
+
+// Fallback: if images haven't loaded within 2 seconds, start anyway
+setTimeout(() => {
+    if (!gameInitialized) {
+        gameInitialized = true;
+        initGame();
+    }
+}, 2000);

@@ -38,6 +38,7 @@ export function drawLives(ctx, canvas) {
 }
 
 export function drawBird(ctx) {
+    if (!window.store.assets.birdImg.naturalWidth) return;
     ctx.save();
     ctx.translate(window.store.bird.x + window.store.assets.birdImg.width / 2, window.store.bird.y + window.store.assets.birdImg.height / 2);
     ctx.rotate(window.store.bird.rotation * Math.PI / 180);
@@ -79,6 +80,7 @@ export function drawBird(ctx) {
 }
 
 export function drawFloor(ctx, canvas) {
+    if (!window.store.assets.floorImg.width) return;
     const floorY = canvas.height / window.store.dpr - window.store.floorHeight;
     for (let i = 0; i * window.store.assets.floorImg.width < canvas.width / window.store.dpr + window.store.assets.floorImg.width; i++) {
         ctx.drawImage(window.store.assets.floorImg, i * window.store.assets.floorImg.width + window.store.floorX, floorY);
@@ -243,6 +245,7 @@ export function drawField(ctx) {
 }
 
 export function drawEnemies(ctx) {
+    if (!window.store.assets.enemyImg) return;
     window.store.enemies.forEach(enemy => {
         ctx.save();
         ctx.translate(enemy.x + window.store.assets.enemyImg.width / 2, enemy.y + window.store.assets.enemyImg.height / 2);
@@ -259,7 +262,7 @@ export function drawBullets(ctx) {
 }
 
 export function drawBoss(ctx) {
-    if (window.store.boss) {
+    if (window.store.boss && window.store.assets.enemyImg) {
         ctx.save();
         ctx.translate(window.store.boss.x + BOSS_SIZE / 2, window.store.boss.y + BOSS_SIZE / 2);
         ctx.drawImage(window.store.assets.enemyImg, -BOSS_SIZE / 2, -BOSS_SIZE / 2, BOSS_SIZE, BOSS_SIZE);
