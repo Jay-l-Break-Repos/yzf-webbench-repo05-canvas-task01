@@ -352,6 +352,9 @@ window.addEventListener('resize', () => {
     resizeCanvas();
 });
 
+// Fire resize once immediately to ensure canvas dimensions are set
+window.dispatchEvent(new Event('resize'));
+
 // ---------------------------------------------------------------------------
 // Start render loop immediately – no Promise.all needed
 // Images are checked inside render() via .complete property
