@@ -328,6 +328,10 @@ window.addEventListener('keyup', (e) => {
 
 // --- Initialization ---
 
+// Size the canvas immediately so it's correct even before images load
+resizeCanvas();
+
+// Load images, then re-size (to position bird using image dimensions) and start rendering
 Promise.all([
     loadImage(window.store.assets.birdImg, 'assets/bird.png'),
     loadImage(window.store.assets.floorImg, 'assets/fg.png'),
