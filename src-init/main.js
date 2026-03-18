@@ -85,29 +85,30 @@ function updateStore(newState) {
  * (DPR) scaling so the rendering stays crisp on high-density displays.
  */
 function resizeCanvas() {
+    const dpr = window.store.dpr;
     const { innerWidth: width, innerHeight: height } = window;
     const ratio = 600 / 800;
 
-    // Canvas CSS dimensions: height matches window, width is proportional
-    canvas.width = Math.min(width, height * ratio);
-    canvas.height = height;
+    // CSS dimensions (what user sees)
+    const cssWidth = Math.min(width, height * ratio);
+    const cssHeight = height;
 
-    // Set the CSS display size
-    canvas.style.width = `${canvas.width}px`;
-    canvas.style.height = `${canvas.height}px`;
+    // Set CSS display size
+    canvas.style.width = `${cssWidth}px`;
+    canvas.style.height = `${cssHeight}px`;
 
-    // Set the actual canvas buffer size scaled by DPR for crisp rendering
-    canvas.width *= window.store.dpr;
-    canvas.height *= window.store.dpr;
+    // Set buffer size = CSS size × DPR
+    canvas.width = cssWidth * dpr;
+    canvas.height = cssHeight * dpr;
 
-    // Scale the drawing context so drawing operations use CSS pixel coordinates
-    ctx.scale(window.store.dpr, window.store.dpr);
+    // Scale context for CSS-pixel coordinates
+    ctx.scale(dpr, dpr);
 
     // Update bird Y position to center vertically
     updateStore({
         bird: {
             ...window.store.bird,
-            y: canvas.height / (2 * window.store.dpr) - window.store.assets.birdImg.height / 2
+            y: canvas.height / (2 * dpr) - window.store.assets.birdImg.height / 2
         }
     });
 }
