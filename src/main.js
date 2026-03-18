@@ -21,6 +21,18 @@ import { GRAVITY, MAX_VELOCITY, ITEM_SIZE, WEATHER_CHANGE_INTERVAL, COIN_SCORE, 
 const canvas = document.getElementById('myCanvas');
 const ctx = canvas.getContext('2d');
 
+// Immediately size the canvas to match the viewport (before images load)
+{
+    const { innerWidth: width, innerHeight: height } = window;
+    const ratio = 600 / 800;
+    const cssWidth = Math.min(width, height * ratio);
+    canvas.style.width = `${cssWidth}px`;
+    canvas.style.height = `${height}px`;
+    canvas.width = cssWidth * window.store.dpr;
+    canvas.height = height * window.store.dpr;
+    ctx.scale(window.store.dpr, window.store.dpr);
+}
+
 function updateBird() {
     if (window.store.isAnimating) {
         let { velocity, y, rotation, x } = window.store.bird;
