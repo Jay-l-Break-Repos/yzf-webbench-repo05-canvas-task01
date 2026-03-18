@@ -173,7 +173,14 @@ export async function createInvertedBirdImage(birdImg) {
     // Create new image from canvas
     const img = new Image();
     img.src = offscreenCanvas.toDataURL();
-    await new Promise(resolve => img.onload = resolve);
+    await new Promise(resolve => {
+        if (img.complete) {
+            resolve();
+        } else {
+            img.onload = resolve;
+            img.onerror = resolve;
+        }
+    });
     return img;
 }
 

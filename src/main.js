@@ -31,6 +31,14 @@ const ctx = canvas.getContext('2d');
     canvas.width = cssWidth * window.store.dpr;
     canvas.height = height * window.store.dpr;
     ctx.scale(window.store.dpr, window.store.dpr);
+    // Set initial bird y position to vertical center
+    const birdImgHeight = window.store.assets.birdImg.height || 0;
+    updateStore({
+        bird: {
+            ...window.store.bird,
+            y: canvas.height / (2 * window.store.dpr) - birdImgHeight / 2
+        }
+    });
 }
 
 function updateBird() {
@@ -240,13 +248,17 @@ window.addEventListener('keyup', (e) => {
 
 function waitForImage(img) {
     return new Promise(resolve => {
-        if (img.complete && img.naturalWidth > 0) {
+        if (img.complete) {
             resolve();
         } else {
             img.onload = resolve;
+            img.onerror = resolve;
         }
     });
 }
+
+// Start the render loop immediately so the game is visible as soon as possible
+render();
 
 Promise.all([
     waitForImage(window.store.assets.birdImg).then(() => {
@@ -260,7 +272,6 @@ Promise.all([
 ]).then(() => {
     resizeCanvas(canvas, ctx);
     initializeWeatherParticles();
-    render();
     setInterval(() => changeWeather(), WEATHER_CHANGE_INTERVAL);
     setInterval(() => generateField(canvas), FIELD_GENERATION_INTERVAL);
     setInterval(() => spawnEnemy(canvas), ENEMY_SPAWN_INTERVAL);

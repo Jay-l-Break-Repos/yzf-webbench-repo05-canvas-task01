@@ -79,6 +79,7 @@ export function drawBird(ctx) {
 }
 
 export function drawFloor(ctx, canvas) {
+    if (!window.store.assets.floorImg.width) return;
     const floorY = canvas.height / window.store.dpr - window.store.floorHeight;
     for (let i = 0; i * window.store.assets.floorImg.width < canvas.width / window.store.dpr + window.store.assets.floorImg.width; i++) {
         ctx.drawImage(window.store.assets.floorImg, i * window.store.assets.floorImg.width + window.store.floorX, floorY);
