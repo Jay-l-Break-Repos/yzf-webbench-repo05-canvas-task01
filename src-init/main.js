@@ -328,16 +328,25 @@ window.addEventListener('keyup', (e) => {
 
 // --- Initialization ---
 
-// Size the canvas immediately so it's correct even before images load
-resizeCanvas();
-
-// Load images, then re-size (to position bird using image dimensions) and start rendering
-Promise.all([
-    loadImage(window.store.assets.birdImg, 'assets/bird.png'),
-    loadImage(window.store.assets.floorImg, 'assets/fg.png'),
-    loadImage(window.store.assets.pipeUpImg, 'assets/pipeUp.png'),
-    loadImage(window.store.assets.pipeDownImg, 'assets/pipeDown.png')
-]).then(() => {
+// Ensure DOM is fully ready before sizing canvas and loading images
+function init() {
+    // Size the canvas immediately so it's correct even before images load
     resizeCanvas();
-    render();
-});
+
+    // Load images, then re-size (to position bird using image dimensions) and start rendering
+    Promise.all([
+        loadImage(window.store.assets.birdImg, 'assets/bird.png'),
+        loadImage(window.store.assets.floorImg, 'assets/fg.png'),
+        loadImage(window.store.assets.pipeUpImg, 'assets/pipeUp.png'),
+        loadImage(window.store.assets.pipeDownImg, 'assets/pipeDown.png')
+    ]).then(() => {
+        resizeCanvas();
+        render();
+    });
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
