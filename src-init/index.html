@@ -3,14 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Canvas Example</title>
-    <style>
-        canvas {
-            border: 1px solid #000;
-        }
-    </style>
+    <title>Canvas</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <canvas id="myCanvas" width="600" height="800"></canvas>
+    <canvas id="myCanvas"></canvas>
+    <script>
+        // Immediate canvas sizing - runs synchronously before deferred module scripts
+        (function() {
+            var canvas = document.getElementById('myCanvas');
+            if (!canvas) return;
+            var ratio = 600 / 800;
+
+            function sizeCanvas() {
+                var dpr = window.devicePixelRatio || 1;
+                var w = Math.min(window.innerWidth, window.innerHeight * ratio);
+                var h = window.innerHeight;
+                canvas.style.width = w + 'px';
+                canvas.style.height = h + 'px';
+                canvas.width = w * dpr;
+                canvas.height = h * dpr;
+                var ctx = canvas.getContext('2d');
+                ctx.scale(dpr, dpr);
+            }
+
+            // Size immediately and on every viewport change
+            sizeCanvas();
+            window.addEventListener('resize', sizeCanvas);
+        })();
+    </script>
+    <script type="module" src="main.js"></script>
 </body>
 </html>
