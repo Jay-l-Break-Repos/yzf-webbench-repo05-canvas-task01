@@ -1,4 +1,4 @@
-FROM node:20
+FROM public.ecr.aws/docker/library/node:20
 
 WORKDIR /app
 
@@ -9,8 +9,8 @@ RUN node -e "const fs=require('fs');const p=require('./package.json');if(p.devDe
 
 COPY . .
 
-ENV EVAL_PROJECT_PORT=3211
+ENV EVAL_PROJECT_PORT=5173
 
-EXPOSE 3211
+EXPOSE 5173
 
-CMD ["bash", "-lc", "npx vite --port ${EVAL_PROJECT_PORT:-3211} --host 0.0.0.0"]
+CMD ["bash", "-lc", "npm run prestart && npx vite src --port ${EVAL_PROJECT_PORT:-5173} --host 0.0.0.0 --config vite.config.js"]

@@ -21,7 +21,7 @@ const { defineConfig, devices } = require('@playwright/test')
  */
 // require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 const PROJECT_DIR = process.env.EVAL_PROJECT_ROOT || 'src'
-const PORT = process.env.EVAL_PROJECT_PORT || 3211
+const PORT = process.env.EVAL_PROJECT_PORT || 5173
 
 /**
  * @see https://playwright.dev/docs/test-configuration

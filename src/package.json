@@ -1,0 +1,12 @@
+{
+  "name": "webbench-repo05-canvas-task01-app",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "npx vite --port 5173 --host 0.0.0.0"
+  },
+  "devDependencies": {
+    "vite": "^7.1.5"
+  }
+}
