@@ -42,12 +42,6 @@ window.store = {
     },
 };
 
-// Kick off image loading
-window.store.assets.birdImg.src = 'assets/bird.png';
-window.store.assets.floorImg.src = 'assets/fg.png';
-window.store.assets.pipeUpImg.src = 'assets/pipeUp.png';
-window.store.assets.pipeDownImg.src = 'assets/pipeDown.png';
-
 // ---------------------------------------------------------------------------
 // Store helper
 // ---------------------------------------------------------------------------
@@ -63,12 +57,12 @@ const canvas = document.getElementById('myCanvas');
 const ctx = canvas.getContext('2d');
 
 // ---------------------------------------------------------------------------
-// Canvas setup & DPR scaling
+// Canvas setup & DPR scaling  (matches reference src/util.js exactly)
 // ---------------------------------------------------------------------------
 
 /**
  * Resize and configure the canvas to match the window dimensions.
- * Uses the reference pattern from src/util.js:
+ * Pattern from src/util.js:
  *   1. Set canvas bitmap to CSS dimensions
  *   2. Set CSS style dimensions
  *   3. Multiply bitmap by DPR
@@ -79,23 +73,18 @@ function resizeCanvas() {
     const ratio = 600 / 800;
     const dpr = window.store.dpr;
 
-    // Step 1: Set canvas bitmap to CSS dimensions
     canvas.width = Math.min(width, height * ratio);
     canvas.height = height;
 
-    // Step 2: Set CSS style dimensions
     canvas.style.width = `${canvas.width}px`;
     canvas.style.height = `${canvas.height}px`;
 
-    // Step 3: Multiply bitmap by DPR for crisp rendering
     canvas.width *= dpr;
     canvas.height *= dpr;
 
-    // Step 4: Scale context
     ctx.scale(dpr, dpr);
 
-    // Update bird Y position (use CSS coordinates = bitmap / dpr)
-    updateStore({
+    return updateStore({
         bird: {
             ...window.store.bird,
             y: canvas.height / (2 * dpr) - window.store.assets.birdImg.height / 2,
@@ -104,12 +93,25 @@ function resizeCanvas() {
 }
 
 // ---------------------------------------------------------------------------
+// Set canvas dimensions IMMEDIATELY (before images load)
+// so tests can read canvas.width / canvas.height right away
+// ---------------------------------------------------------------------------
+resizeCanvas();
+
+// ---------------------------------------------------------------------------
+// Now kick off image loading (after canvas is sized)
+// ---------------------------------------------------------------------------
+window.store.assets.birdImg.src = 'assets/bird.png';
+window.store.assets.floorImg.src = 'assets/fg.png';
+window.store.assets.pipeUpImg.src = 'assets/pipeUp.png';
+window.store.assets.pipeDownImg.src = 'assets/pipeDown.png';
+
+// ---------------------------------------------------------------------------
 // Drawing helpers
 // ---------------------------------------------------------------------------
 
 /** Draw the score box in the top-left corner */
 function drawScore() {
-    const dpr = window.store.dpr;
     ctx.font = '14px Arial';
     ctx.fillStyle = 'white';
     ctx.strokeStyle = 'white';
@@ -312,6 +314,30 @@ function render() {
 }
 
 // ---------------------------------------------------------------------------
+// Input handlers (bound at top level, same as reference src/main.js)
+// ---------------------------------------------------------------------------
+canvas.addEventListener('click', () => {
+    if (!window.store.isGameOver) {
+        startAnimation();
+        jump();
+    }
+});
+
+window.addEventListener('keydown', (e) => {
+    if (
+        (e.key === 'Enter' ||
+            e.key === 'w' ||
+            e.key === 'j' ||
+            e.key === ' ' ||
+            e.key === 'ArrowUp') &&
+        !window.store.isGameOver
+    ) {
+        startAnimation();
+        jump();
+    }
+});
+
+// ---------------------------------------------------------------------------
 // Resize handler (bound at top level, same as reference src/main.js)
 // ---------------------------------------------------------------------------
 window.addEventListener('resize', () => {
@@ -320,7 +346,7 @@ window.addEventListener('resize', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Bootstrap – wait for all images then set up canvas, bind handlers, render
+// Bootstrap – wait for all images then recalculate bird position and render
 // ---------------------------------------------------------------------------
 Promise.all([
     new Promise((resolve) => (window.store.assets.birdImg.onload = resolve)),
@@ -328,29 +354,7 @@ Promise.all([
     new Promise((resolve) => (window.store.assets.pipeUpImg.onload = resolve)),
     new Promise((resolve) => (window.store.assets.pipeDownImg.onload = resolve)),
 ]).then(() => {
+    // Recalculate with actual image dimensions now available
     resizeCanvas();
-
-    // Bind event handlers after canvas is fully ready and render loop starts
-    canvas.addEventListener('click', () => {
-        if (!window.store.isGameOver) {
-            startAnimation();
-            jump();
-        }
-    });
-
-    window.addEventListener('keydown', (e) => {
-        if (
-            (e.key === 'Enter' ||
-                e.key === 'w' ||
-                e.key === 'j' ||
-                e.key === ' ' ||
-                e.key === 'ArrowUp') &&
-            !window.store.isGameOver
-        ) {
-            startAnimation();
-            jump();
-        }
-    });
-
     render();
 });
