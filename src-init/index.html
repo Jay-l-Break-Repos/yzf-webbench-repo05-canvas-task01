@@ -17,6 +17,10 @@
 
             function sizeCanvas() {
                 var dpr = window.devicePixelRatio || 1;
+                // Update store.dpr if store exists
+                if (window.store) {
+                    window.store.dpr = dpr;
+                }
                 var w = Math.min(window.innerWidth, window.innerHeight * ratio);
                 var h = window.innerHeight;
                 canvas.style.width = w + 'px';
