@@ -8,6 +8,23 @@
 </head>
 <body>
     <canvas id="myCanvas"></canvas>
+    <script>
+        // Immediate canvas sizing - runs synchronously before deferred module scripts
+        (function() {
+            var canvas = document.getElementById('myCanvas');
+            if (!canvas) return;
+            var dpr = window.devicePixelRatio || 1;
+            var ratio = 600 / 800;
+            var w = Math.min(window.innerWidth, window.innerHeight * ratio);
+            var h = window.innerHeight;
+            canvas.style.width = w + 'px';
+            canvas.style.height = h + 'px';
+            canvas.width = w * dpr;
+            canvas.height = h * dpr;
+            var ctx = canvas.getContext('2d');
+            ctx.scale(dpr, dpr);
+        })();
+    </script>
     <script type="module" src="main.js"></script>
 </body>
 </html>
