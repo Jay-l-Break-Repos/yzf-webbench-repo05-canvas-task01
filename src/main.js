@@ -257,23 +257,45 @@ function waitForImage(img) {
     });
 }
 
-// Start the render loop immediately so the game is visible as soon as possible
-render();
+function initGame() {
+    resizeCanvas(canvas, ctx);
+    initializeWeatherParticles();
+    render();
+    setInterval(() => changeWeather(), WEATHER_CHANGE_INTERVAL);
+    setInterval(() => generateField(canvas), FIELD_GENERATION_INTERVAL);
+    setInterval(() => spawnEnemy(canvas), ENEMY_SPAWN_INTERVAL);
+    setInterval(() => spawnBoss(canvas), BOSS_SPAWN_INTERVAL);
+}
+
+let gameInitialized = false;
 
 Promise.all([
     waitForImage(window.store.assets.birdImg).then(() => {
-        return createInvertedBirdImage(window.store.assets.birdImg).then(img => {
-            window.store.assets.enemyImg = img;
-        });
+        if (window.store.assets.birdImg.naturalWidth) {
+            return createInvertedBirdImage(window.store.assets.birdImg).then(img => {
+                window.store.assets.enemyImg = img;
+            });
+        }
     }),
     waitForImage(window.store.assets.floorImg),
     waitForImage(window.store.assets.pipeUpImg),
     waitForImage(window.store.assets.pipeDownImg)
 ]).then(() => {
-    resizeCanvas(canvas, ctx);
-    initializeWeatherParticles();
-    setInterval(() => changeWeather(), WEATHER_CHANGE_INTERVAL);
-    setInterval(() => generateField(canvas), FIELD_GENERATION_INTERVAL);
-    setInterval(() => spawnEnemy(canvas), ENEMY_SPAWN_INTERVAL);
-    setInterval(() => spawnBoss(canvas), BOSS_SPAWN_INTERVAL);
+    if (!gameInitialized) {
+        gameInitialized = true;
+        initGame();
+    }
+}).catch(() => {
+    if (!gameInitialized) {
+        gameInitialized = true;
+        initGame();
+    }
 });
+
+// Fallback: if images haven't loaded within 2 seconds, start anyway
+setTimeout(() => {
+    if (!gameInitialized) {
+        gameInitialized = true;
+        initGame();
+    }
+}, 2000);
