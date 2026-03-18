@@ -57,36 +57,48 @@ function updateStore(newState) {
 }
 
 // ---------------------------------------------------------------------------
+// Canvas & context – obtained immediately (module scripts are deferred)
+// ---------------------------------------------------------------------------
+const canvas = document.getElementById('myCanvas');
+const ctx = canvas.getContext('2d');
+
+// ---------------------------------------------------------------------------
 // Canvas setup & DPR scaling
 // ---------------------------------------------------------------------------
 
 /**
  * Resize and configure the canvas to match the window dimensions.
- *
- * - Canvas bitmap dimensions equal the CSS viewport dimensions
- * - CSS style dimensions are set to match
- * - ctx.scale(dpr, dpr) is used for crisp drawing on HiDPI screens
+ * Uses the reference pattern from src/util.js:
+ *   1. Set canvas bitmap to CSS dimensions
+ *   2. Set CSS style dimensions
+ *   3. Multiply bitmap by DPR
+ *   4. Scale context by DPR
  */
-function resizeCanvas(canvas, ctx) {
+function resizeCanvas() {
     const { innerWidth: width, innerHeight: height } = window;
     const ratio = 600 / 800;
     const dpr = window.store.dpr;
 
-    // Canvas bitmap = CSS viewport dimensions (no DPR multiplier)
+    // Step 1: Set canvas bitmap to CSS dimensions
     canvas.width = Math.min(width, height * ratio);
     canvas.height = height;
 
-    // CSS style dimensions match bitmap
+    // Step 2: Set CSS style dimensions
     canvas.style.width = `${canvas.width}px`;
     canvas.style.height = `${canvas.height}px`;
 
-    // Scale context for crisp rendering on HiDPI screens
+    // Step 3: Multiply bitmap by DPR for crisp rendering
+    canvas.width *= dpr;
+    canvas.height *= dpr;
+
+    // Step 4: Scale context
     ctx.scale(dpr, dpr);
 
-    return updateStore({
+    // Update bird Y position (use CSS coordinates = bitmap / dpr)
+    updateStore({
         bird: {
             ...window.store.bird,
-            y: canvas.height / 2 - window.store.assets.birdImg.height / 2,
+            y: canvas.height / (2 * dpr) - window.store.assets.birdImg.height / 2,
         },
     });
 }
@@ -96,7 +108,8 @@ function resizeCanvas(canvas, ctx) {
 // ---------------------------------------------------------------------------
 
 /** Draw the score box in the top-left corner */
-function drawScore(ctx) {
+function drawScore() {
+    const dpr = window.store.dpr;
     ctx.font = '14px Arial';
     ctx.fillStyle = 'white';
     ctx.strokeStyle = 'white';
@@ -110,7 +123,7 @@ function drawScore(ctx) {
 }
 
 /** Draw the bird image (with rotation) */
-function drawBird(ctx) {
+function drawBird() {
     const { bird, assets } = window.store;
     ctx.save();
     ctx.translate(
@@ -127,13 +140,14 @@ function drawBird(ctx) {
 }
 
 /** Draw the tiled floor and scroll it when animating */
-function drawFloor(ctx, canvas) {
-    const floorY = canvas.height - window.store.floorHeight;
+function drawFloor() {
+    const dpr = window.store.dpr;
+    const floorY = canvas.height / dpr - window.store.floorHeight;
     const floorImg = window.store.assets.floorImg;
 
     for (
         let i = 0;
-        i * floorImg.width < canvas.width + floorImg.width;
+        i * floorImg.width < canvas.width / dpr + floorImg.width;
         i++
     ) {
         ctx.drawImage(floorImg, i * floorImg.width + window.store.floorX, floorY);
@@ -150,46 +164,48 @@ function drawFloor(ctx, canvas) {
 }
 
 /** Draw "Click to Start" text centred on the canvas */
-function drawStartText(ctx, canvas) {
+function drawStartText() {
     if (!window.store.isAnimating && !window.store.isGameOver) {
+        const dpr = window.store.dpr;
         ctx.font = '20px Arial';
         ctx.fillStyle = 'white';
         ctx.textAlign = 'center';
         ctx.fillText(
             'Click to Start',
-            canvas.width / 2,
-            canvas.height / 2,
+            canvas.width / (2 * dpr),
+            canvas.height / (2 * dpr),
         );
     }
 }
 
 /** Draw the Game Over overlay */
-function drawGameOver(ctx, canvas) {
+function drawGameOver() {
     if (window.store.isGameOver) {
+        const dpr = window.store.dpr;
         ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillRect(0, 0, canvas.width / dpr, canvas.height / dpr);
 
         ctx.font = '30px Arial';
         ctx.fillStyle = 'white';
         ctx.textAlign = 'center';
         ctx.fillText(
             'GAME OVER',
-            canvas.width / 2,
-            canvas.height / 2 - 40,
+            canvas.width / (2 * dpr),
+            canvas.height / (2 * dpr) - 40,
         );
 
         ctx.font = '20px Arial';
         ctx.fillText(
             `Score: ${window.store.score}`,
-            canvas.width / 2,
-            canvas.height / 2,
+            canvas.width / (2 * dpr),
+            canvas.height / (2 * dpr),
         );
 
         ctx.font = '16px Arial';
         ctx.fillText(
             'Click to Play Again',
-            canvas.width / 2,
-            canvas.height / 2 + 40,
+            canvas.width / (2 * dpr),
+            canvas.height / (2 * dpr) + 40,
         );
     }
 }
@@ -200,6 +216,7 @@ function drawGameOver(ctx, canvas) {
 function updateBird() {
     if (!window.store.isAnimating) return;
 
+    const dpr = window.store.dpr;
     let { velocity, y, rotation } = window.store.bird;
 
     velocity += GRAVITY * window.store.frameAdjustedRate;
@@ -211,13 +228,13 @@ function updateBird() {
 
     if (
         y + window.store.assets.birdImg.height >=
-        canvas.height - window.store.floorHeight
+        canvas.height / dpr - window.store.floorHeight
     ) {
         if (window.store.mode !== 'debug') {
-            endGame(canvas);
+            endGame();
         } else {
             y =
-                canvas.height -
+                canvas.height / dpr -
                 window.store.floorHeight -
                 window.store.assets.birdImg.height;
         }
@@ -243,7 +260,7 @@ function jump() {
     }
 }
 
-function endGame(canvas) {
+function endGame() {
     updateStore({ isGameOver: true, isAnimating: false });
     setTimeout(() => {
         canvas.addEventListener('click', restartGame);
@@ -252,6 +269,7 @@ function endGame(canvas) {
 }
 
 function restartGame() {
+    const dpr = window.store.dpr;
     updateStore({
         isGameOver: false,
         isAnimating: true,
@@ -259,7 +277,7 @@ function restartGame() {
         bird: {
             x: BIRD_INITIAL_X,
             y:
-                canvas.height / 2 -
+                canvas.height / (2 * dpr) -
                 window.store.assets.birdImg.height / 2,
             velocity: 0,
             rotation: 0,
@@ -283,38 +301,26 @@ function handleRestartKeydown(e) {
 function render() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    drawScore(ctx);
-    drawBird(ctx);
-    drawFloor(ctx, canvas);
-    drawStartText(ctx, canvas);
-    drawGameOver(ctx, canvas);
+    drawScore();
+    drawBird();
+    drawFloor();
+    drawStartText();
+    drawGameOver();
     updateBird();
 
     requestAnimationFrame(render);
 }
 
 // ---------------------------------------------------------------------------
-// Top-level canvas & context (matches reference src/main.js pattern)
-// ---------------------------------------------------------------------------
-const canvas = document.getElementById('myCanvas');
-const ctx = canvas.getContext('2d');
-
-// ---------------------------------------------------------------------------
-// Resize handler (bound at top level, same as reference)
+// Resize handler (bound at top level, same as reference src/main.js)
 // ---------------------------------------------------------------------------
 window.addEventListener('resize', () => {
     updateStore({ dpr: window.devicePixelRatio || 1 });
-    resizeCanvas(canvas, ctx);
+    resizeCanvas();
 });
 
 // ---------------------------------------------------------------------------
-// Initial resize – set canvas dimensions immediately so tests can read them
-// before images finish loading
-// ---------------------------------------------------------------------------
-resizeCanvas(canvas, ctx);
-
-// ---------------------------------------------------------------------------
-// Bootstrap – wait for all images then bind handlers and start render loop
+// Bootstrap – wait for all images then set up canvas, bind handlers, render
 // ---------------------------------------------------------------------------
 Promise.all([
     new Promise((resolve) => (window.store.assets.birdImg.onload = resolve)),
@@ -322,9 +328,9 @@ Promise.all([
     new Promise((resolve) => (window.store.assets.pipeUpImg.onload = resolve)),
     new Promise((resolve) => (window.store.assets.pipeDownImg.onload = resolve)),
 ]).then(() => {
-    resizeCanvas(canvas, ctx);
+    resizeCanvas();
 
-    // Bind event handlers after canvas is fully ready
+    // Bind event handlers after canvas is fully ready and render loop starts
     canvas.addEventListener('click', () => {
         if (!window.store.isGameOver) {
             startAnimation();
