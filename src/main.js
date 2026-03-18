@@ -226,15 +226,25 @@ window.addEventListener('keyup', (e) => {
     }
 });
 
-Promise.all([
-    new Promise(resolve => window.store.assets.birdImg.onload = ()=>{
-        createInvertedBirdImage(window.store.assets.birdImg).then(img => window.store.assets.enemyImg = img).then(()=>{;
+function waitForImage(img) {
+    return new Promise(resolve => {
+        if (img.complete && img.naturalWidth > 0) {
             resolve();
+        } else {
+            img.onload = resolve;
+        }
+    });
+}
+
+Promise.all([
+    waitForImage(window.store.assets.birdImg).then(() => {
+        return createInvertedBirdImage(window.store.assets.birdImg).then(img => {
+            window.store.assets.enemyImg = img;
         });
     }),
-    new Promise(resolve => window.store.assets.floorImg.onload = resolve),
-    new Promise(resolve => window.store.assets.pipeUpImg.onload = resolve),
-    new Promise(resolve => window.store.assets.pipeDownImg.onload = resolve)
+    waitForImage(window.store.assets.floorImg),
+    waitForImage(window.store.assets.pipeUpImg),
+    waitForImage(window.store.assets.pipeDownImg)
 ]).then(() => {
     resizeCanvas(canvas, ctx);
     initializeWeatherParticles();
